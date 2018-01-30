@@ -64,6 +64,7 @@ public class AddressBook {
      */
     private static final String MESSAGE_ADDED = "New person added: %1$s, Phone: %2$s, Email: %3$s";
     private static final String MESSAGE_ADDRESSBOOK_CLEARED = "Address book has been cleared!";
+    private static final String MESSAGE_ADDRESSBOOK_SORTED = "Address book has been sorted in alphabetical order of names";
     private static final String MESSAGE_COMMAND_HELP = "%1$s: %2$s";
     private static final String MESSAGE_COMMAND_HELP_PARAMETERS = "\tParameters: %1$s";
     private static final String MESSAGE_COMMAND_HELP_EXAMPLE = "\tExample: %1$s";
@@ -112,6 +113,10 @@ public class AddressBook {
     private static final String COMMAND_LIST_DESC = "Displays all persons as a list with index numbers.";
     private static final String COMMAND_LIST_EXAMPLE = COMMAND_LIST_WORD;
 
+    private static final String COMMAND_SORT_WORD = "sort";
+    private static final String COMMAND_SORT_DESC = "Sorts all persons in alphabetical order.";
+    private static final String COMMAND_SORT_EXAMPLE = COMMAND_SORT_WORD;
+
     private static final String COMMAND_DELETE_WORD = "delete";
     private static final String COMMAND_DELETE_DESC = "Deletes a person identified by the index number used in "
                                                     + "the last find/list call.";
@@ -147,7 +152,7 @@ public class AddressBook {
     private static final String PHONE = "phone";
     private static final String EMAIL = "email";
 
-    private enum PersonProperty  {NAME, PHONE, EMAIL};
+    public enum PersonProperty  {NAME, PHONE, EMAIL};
 
     /**
      * The number of data elements for a single person.
@@ -163,6 +168,9 @@ public class AddressBook {
      * If the first non-whitespace character in a user's input line is this, that line will be ignored.
      */
     private static final char INPUT_COMMENT_MARKER = '#';
+
+    private static final boolean TRUE = true;
+    private static final boolean FALSE = false;
 
     /*
      * This variable is declared for the whole class (instead of declaring it
@@ -409,6 +417,8 @@ public class AddressBook {
             return executeFindPersons(commandArgs);
         case COMMAND_LIST_WORD:
             return executeListAllPersonsInAddressBook();
+        case COMMAND_SORT_WORD:
+            return executeSortAddressBook();
         case COMMAND_DELETE_WORD:
             return executeDeletePerson(commandArgs);
         case COMMAND_CLEAR_WORD:
@@ -611,6 +621,25 @@ public class AddressBook {
         ArrayList<HashMap<PersonProperty,String>> toBeDisplayed = getAllPersonsInAddressBook();
         showToUser(toBeDisplayed);
         return getMessageForPersonsDisplayedSummary(toBeDisplayed);
+    }
+
+    /**
+     * Displays all persons in the address book to the user; in added order.
+     *
+     * @return feedback display message for the operation result
+     */
+    private static String executeSortAddressBook() {
+        sortAddressBook();
+        return getMessageForSortedAddressBook();
+    }
+
+    /**
+     * Constructs a feedback message to summarise an operation that displayed a listing of persons.
+     *
+     * @return summary message for persons displayed
+     */
+    private static String getMessageForSortedAddressBook(){
+        return MESSAGE_ADDRESSBOOK_SORTED;
     }
 
     /**
@@ -871,6 +900,18 @@ public class AddressBook {
      */
     private static ArrayList<HashMap<PersonProperty,String>> getAllPersonsInAddressBook() {
         return ALL_PERSONS;
+    }
+
+    /**
+     * Sorts persons in the address book in order of Name and saves changes to file
+     */
+    private static boolean sortAddressBook() {
+        if(ALL_PERSONS.size() == 0){
+            return FALSE;
+        }
+        Collections.sort(ALL_PERSONS, new HashMapComparator());
+        savePersonsToFile(getAllPersonsInAddressBook(), storageFilePath);
+        return TRUE;
     }
 
     /**
